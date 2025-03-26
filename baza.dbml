@@ -1,0 +1,62 @@
+Table Class {
+  Class_ID string [primary key]
+  Lecturer_ID string [ref: > Lecturer.Lecturer_ID] // Jeden wykładowca na konkretne zajęcia
+  Start_Time datetime
+  End_Time datetime
+  Building_ID string [ref: > Building.Building_ID]
+  Room_ID string [ref: > Room.Room_ID]
+  Max_Capacity int
+  Enrolled_Count int
+  Is_Cancelled bool
+  Subject_ID string [ref: > Subject.Subject_ID] // Powiązanie z przedmiotem
+  Waiting_List_Count int
+}
+
+Table Lecturer {
+  Lecturer_ID string [primary key]
+  First_Name string
+  Last_Name string
+  Email string
+}
+
+Table Subject {
+  Subject_ID string [primary key]
+  Subject_Name string
+}
+
+Table Lecturer_Subject {
+  Lecturer_ID string [ref: > Lecturer.Lecturer_ID]
+  Subject_ID string [ref: > Subject.Subject_ID]
+
+  primary key (Lecturer_ID, Subject_ID) 
+}
+
+Table Reservation {
+  Student_Index int [ref: > Student.Index]
+  Class_ID string [ref: > Class.Class_ID]
+  Reservation_Date datetime
+  Status string
+  Note string // uwagi do rezerwacji
+
+  primary key (Student_Index, Class_ID)
+}
+
+Table Student {
+  Index int [primary key]
+  First_Name string
+  Last_Name string
+  Major string
+  Department string
+  Year_of_Study int
+}
+
+Table Room {
+  Room_ID string [primary key]
+  Building_ID string [ref: > Building.Building_ID]
+}
+
+Table Building {
+  Building_ID string [primary key]
+  Address string
+}
+
