@@ -1,3 +1,6 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
 Table Class {
   Class_ID string [primary key]
   Lecturer_ID string [ref: > Lecturer.Lecturer_ID] // Jeden wykładowca na konkretne zajęcia
@@ -22,19 +25,15 @@ Table Subject {
   Subject_Name string
 }
 
-Table Lecturer_Subject {
-  Lecturer_ID string [ref: > Lecturer.Lecturer_ID]
-  Subject_ID string [ref: > Subject.Subject_ID]
-
-  primary key (Lecturer_ID, Subject_ID) // Relacja M:N
-}
+// Relacja M:N między wykładowcami a przedmiotami
+Ref: Lecturer.Lecturer_ID <> Subject.Subject_ID
 
 Table Reservation {
   Student_Index int [ref: > Student.Index]
   Class_ID string [ref: > Class.Class_ID]
   Reservation_Date datetime
   Status string
-  Note string
+  Note string // Można dodać pole np. do uwag o rezerwacji
 
   primary key (Student_Index, Class_ID)
 }
@@ -58,9 +57,5 @@ Table Building {
   Address string
 }
 
-Table Class_Building {
-  Class_ID string [ref: > Class.Class_ID]
-  Building_ID string [ref: > Building.Building_ID]
-
-  primary key (Class_ID, Building_ID) // Relacja M:N
-}
+// Relacja M:N między zajęciami a budynkami
+Ref: Class.Class_ID <> Building.Building_ID
