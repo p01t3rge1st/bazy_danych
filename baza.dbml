@@ -3,8 +3,6 @@ Table Class {
   Lecturer_ID string [ref: > Lecturer.Lecturer_ID] // Jeden wykładowca na konkretne zajęcia
   Start_Time datetime
   End_Time datetime
-  Building_ID string [ref: > Building.Building_ID]
-  Room_ID string [ref: > Room.Room_ID]
   Max_Capacity int
   Enrolled_Count int
   Is_Cancelled bool
@@ -28,7 +26,7 @@ Table Lecturer_Subject {
   Lecturer_ID string [ref: > Lecturer.Lecturer_ID]
   Subject_ID string [ref: > Subject.Subject_ID]
 
-  primary key (Lecturer_ID, Subject_ID) 
+  primary key (Lecturer_ID, Subject_ID) // Relacja M:N
 }
 
 Table Reservation {
@@ -36,7 +34,7 @@ Table Reservation {
   Class_ID string [ref: > Class.Class_ID]
   Reservation_Date datetime
   Status string
-  Note string // uwagi do rezerwacji
+  Note string
 
   primary key (Student_Index, Class_ID)
 }
@@ -60,3 +58,9 @@ Table Building {
   Address string
 }
 
+Table Class_Building {
+  Class_ID string [ref: > Class.Class_ID]
+  Building_ID string [ref: > Building.Building_ID]
+
+  primary key (Class_ID, Building_ID) // Relacja M:N
+}
