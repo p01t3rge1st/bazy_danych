@@ -62,6 +62,8 @@ INSERT_STUDENT = "INSERT INTO Student(Student_Index, First_Name, Last_Name, Majo
 ADD_RESERVATION = "INSERT INTO Reservation(Student_Index, Class_ID, Reservation_Date, Status, Note)" \
                  "VALUES (?,?,?,?,?)"
 
+ADD_ROOM = "INSERT INTO Room(Room_ID, Building_ID) VALUES (?,?)"
+
 class dbMenager:
 
     def __init__(self, db_name = "zajecia.db"):
@@ -111,9 +113,16 @@ class dbMenager:
             self.connection.execute(ADD_RESERVATION, (index, classID, reservationDate, status, note))
             self.connection.commit()
 
+    def addRoom(self, text):
+        with self.connection:
+            roomID = text.split()[0]
+            BuildingID = text.split()[1]
+
+            self.connection.execute(ADD_ROOM, (roomID, BuildingID))
+            self.connection.commit()
+
 if __name__ == "__main__":
     db = dbMenager()
     db.create_tables()
-    db.exportStudentToDatabase("133724 Michał Zmywak MBM W10 2")
-    db.addReservation("133754 5 11.04.2025 OK -")
+    db.addRoom("11 23")
     db.close()
