@@ -64,6 +64,8 @@ ADD_RESERVATION = "INSERT INTO Reservation(Student_Index, Class_ID, Reservation_
 
 ADD_ROOM = "INSERT INTO Room(Room_ID, Building_ID) VALUES (?,?)"
 
+ADD_BUILDING = "INSERT INTO Building(Building_ID, Address) VALUES (?,?)"
+
 class dbMenager:
 
     def __init__(self, db_name = "zajecia.db"):
@@ -121,8 +123,16 @@ class dbMenager:
             self.connection.execute(ADD_ROOM, (roomID, BuildingID))
             self.connection.commit()
 
+    def addBuilding(self, text : str):
+        with self.connection:
+            buildingID = text.split()[0]
+            address = text.split()[1]
+
+            self.connection.execute(ADD_BUILDING, (buildingID, address))
+            self.connection.commit()
+
 if __name__ == "__main__":
     db = dbMenager()
     db.create_tables()
-    db.addRoom("11 23")
+    db.addBuilding("23 Wittiga")
     db.close()
