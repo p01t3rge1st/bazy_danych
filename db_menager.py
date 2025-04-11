@@ -75,16 +75,32 @@ class dbMenager:
             self.connection.execute(CREATE_RESERVATION_TABLE)
             self.connection.execute(CREATE_WAITING_LIST_TABLE)
             
+            
 
     def close(self):
         self.connection.close()
 
-    def importClassesFromFile(self, text : str):
-        pass
+    def importClassesFromFile(self, activity : str):
+        with self.connection:
+            insertedClass = activity.split()
+            self.connection.execute(INSERT_CLASSES, (15, insertedClass[1], insertedClass[2],
+                                                    0, 2, 5, 6))
+            self.connection.commit()
+    def exportStudentToDatabase(self, text : str):
+        with self.connection:
+            index = text.split()[0]
+            name = text.split()[1]
+            surname = text.split()[2]
+            major = text.split()[3]
+            department = text.split()[4]
+            yearOfStudy = text.split()[5]
+
+            self.connection.execute(INSERT_STUDENT, (index, name, surname, major, department, yearOfStudy))
+            self.connection.commit()
 
 
 if __name__ == "__main__":
     db = dbMenager()
     db.create_tables()
-    print("Sukces tworzenia BD")
+    db.exportStudentToDatabase("133724 Michał Zmywak MBM W10 2")
     db.close()
