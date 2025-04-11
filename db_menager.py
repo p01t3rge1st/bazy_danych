@@ -72,6 +72,9 @@ class dbMenager:
     def close(self):
         self.connection.close()
 
+    def importClassesFromFile(self, text : str):
+        pass
+
 
 if __name__ == "__main__":
     db = dbMenager()
