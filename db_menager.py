@@ -66,6 +66,10 @@ ADD_ROOM = "INSERT INTO Room(Room_ID, Building_ID) VALUES (?,?)"
 
 ADD_BUILDING = "INSERT INTO Building(Building_ID, Address) VALUES (?,?)"
 
+ADD_LECTURER = "INSERT INTO Lecturer(Lecturer_ID, First_Name, Last_Name, Email) VALUES (?,?,?,?)"
+
+ADD_SUBJECT = "INSERT INTO Subject(Subject_ID, Subject_Name) VALUES (?,?)"
+
 class dbMenager:
 
     def __init__(self, db_name = "zajecia.db"):
@@ -129,6 +133,24 @@ class dbMenager:
             address = text.split()[1]
 
             self.connection.execute(ADD_BUILDING, (buildingID, address))
+            self.connection.commit()
+
+    def addLecturer(self, text : str):
+        with self.connection:
+            lecturerID = text.split()[0]
+            firstName = text.split()[1]
+            sureName = text.split()[2]
+            email = text.split()[3]
+
+            self.connection.execute(ADD_LECTURER, (lecturerID, firstName, sureName, email))
+            self.connection.commit()
+
+    def addSubject(self, text : str):
+        with self.connection:
+            subjectID = text.split()[0]
+            subjectName = text.split()[1]
+
+            self.connection.execute(ADD_SUBJECT, (subjectID, subjectName))
             self.connection.commit()
 
 if __name__ == "__main__":
