@@ -53,6 +53,12 @@ CREATE_WAITING_LIST_TABLE = "CREATE TABLE IF NOT EXISTS WaitingList (Waiting_ID 
                                                                     "FOREIGN KEY(Student_Index) REFERENCES Student(Student_Index)," \
                                                                     "FOREIGN KEY(Class_ID) REFERENCES Class(Class_ID))"
 
+INSERT_CLASSES = "INSERT INTO Class(Lecturer_ID, Start_Time, End_Time, Is_Cancelled, Subject_ID," \
+"Waiting_List_Count, Room_ID) VALUES (?, ?,?,?,?,?,?)"
+
+INSERT_STUDENT = "INSERT INTO Student(Student_Index, First_Name, Last_Name, Major, Department, Year_of_Study)" \
+                 "VALUES (?,?,?,?,?,?)"
+
 class dbMenager:
 
     def __init__(self, db_name = "zajecia.db"):
