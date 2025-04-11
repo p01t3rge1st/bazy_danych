@@ -59,6 +59,9 @@ INSERT_CLASSES = "INSERT INTO Class(Lecturer_ID, Start_Time, End_Time, Is_Cancel
 INSERT_STUDENT = "INSERT INTO Student(Student_Index, First_Name, Last_Name, Major, Department, Year_of_Study)" \
                  "VALUES (?,?,?,?,?,?)"
 
+ADD_RESERVATION = "INSERT INTO Reservation(Student_Index, Class_ID, Reservation_Date, Status, Note)" \
+                 "VALUES (?,?,?,?,?)"
+
 class dbMenager:
 
     def __init__(self, db_name = "zajecia.db"):
@@ -97,10 +100,20 @@ class dbMenager:
 
             self.connection.execute(INSERT_STUDENT, (index, name, surname, major, department, yearOfStudy))
             self.connection.commit()
+    def addReservation(self, text : str):
+        with self.connection:
+            index = text.split()[0]
+            classID = text.split()[1]
+            reservationDate = text.split()[2]
+            status = text.split()[3]
+            note = text.split()[4]
 
+            self.connection.execute(ADD_RESERVATION, (index, classID, reservationDate, status, note))
+            self.connection.commit()
 
 if __name__ == "__main__":
     db = dbMenager()
     db.create_tables()
     db.exportStudentToDatabase("133724 Michał Zmywak MBM W10 2")
+    db.addReservation("133754 5 11.04.2025 OK -")
     db.close()
