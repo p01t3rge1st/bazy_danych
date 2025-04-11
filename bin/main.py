@@ -5,6 +5,7 @@ import pandas as pd
 from pdf_menager import Pdf_menager
 from pe_activities import PeActivities
 from ui import UI
+from db_menager import dbMenager
 
 def main():
     Pdf_menager.get_info()

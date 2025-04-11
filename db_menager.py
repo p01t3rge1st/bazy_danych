@@ -1,5 +1,5 @@
 import sqlite3
-
+from bin.pe_activities import PeActivities
 
 CREATE_BUILDING_TABLE  = "CREATE TABLE IF NOT EXISTS Building (Building_ID TEXT PRIMARY KEY, " \
                                                                 "Address TEXT NOT NULL)"
@@ -9,14 +9,15 @@ CREATE_CLASS_TABLE = "CREATE TABLE IF NOT EXISTS Class (Class_ID INTEGER PRIMARY
                     "Start_Time TEXT NOT NULL, " \
                     "End_Time TEXT NOT NULL, " \
                     "Max_Capacity INTEGER NOT NULL DEFAULT 20, " \
-                    "Enrolled_Count INTEGER NOT NULL," \
+                    "Enrolled_Count INTEGER NOT NULL DEFAULT 0," \
                     "Is_Cancelled INT, " \
                     "Subject_ID INTEGER NOT NULL," \
                     "Waiting_List_Count INT," \
                     "Room_ID INTEGER NOT NULL," \
                     "FOREIGN KEY(Subject_ID) REFERENCES Subject(Subject_ID)," \
                     "FOREIGN KEY(Lecturer_ID) REFERENCES Lecturer(Lecturer_ID)," \
-                    "FOREIGN KEY(Room_ID) REFERENCES Room(Room_ID) )"
+                    "FOREIGN KEY(Room_ID) REFERENCES Room(Room_ID)," \
+                   "UNIQUE(Lecturer_ID, Start_Time, End_Time, Subject_ID, Room_ID) )"
 
 CREATE_LECTURER_TABLE = "CREATE TABLE IF NOT EXISTS Lecturer (Lecturer_ID INTEGER PRIMARY KEY, " \
                                                             "First_Name TEXT NOT NULL," \
