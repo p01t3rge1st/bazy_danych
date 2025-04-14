@@ -76,6 +76,23 @@ ADD_SUBJECT = "INSERT INTO Subject(Subject_ID, Subject_Name) VALUES (?,?)"
 
 class dbMenager:
 
+    def create_view(self):
+        query = """
+        CREATE VIEW IF NOT EXISTS BuildingSubjectView AS
+        SELECT b.Building_ID, b.Address, s.Subject_Name, l.First_Name AS Lecturer_First_Name, l.Last_Name AS Lecturer_Last_Name
+        FROM Building b
+        JOIN Room r ON b.Building_ID = r.Building_ID
+        JOIN Class c ON r.Room_ID = c.Room_ID
+        JOIN Subject s ON c.Subject_ID = s.Subject_ID
+        JOIN Lecturer l ON c.Lecturer_ID = l.Lecturer_ID;
+        """
+        connection = sqlite3.connect('zajecia.db')
+        cursor = connection.cursor()
+        cursor.execute(query)
+        connection.commit()
+        connection.close()
+
+
     def __init__(self, db_name = "zajecia.db"):
         self.connection = sqlite3.connect(db_name)
     
@@ -161,5 +178,10 @@ class dbMenager:
 if __name__ == "__main__":
     db = dbMenager()
     db.create_tables()
-    db.addBuildingToDatabase("23 Wittiga")
+    #db.addBuildingToDatabase("23 Wittiga")
+    #db.addLecturerToDatabase("1 Jan Kowalski jan.kowalski@example.com")
+    #db.addSubjectToDatabase("1 Matematyka")
+    #db.addRoomToDatabase("101 1")
+    #db.importClassesToDatabase("Zajecia 09:00 10:30")
+    db.create_view()
     db.close()

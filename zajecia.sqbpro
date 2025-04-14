@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="zajecia.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="0"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="3347"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="Building" custom_title="0" dock_id="1" table="4,8:mainBuilding"/><dock_state state="000000ff00000000fd00000001000000020000000000000000fc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000ffffffff0000011200ffffff000000000000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1*">CREATE VIEW IF NOT EXISTS BuildingSubjectView AS
+SELECT b.Building_ID, b.Address, s.Subject_Name, l.First_Name AS Lecturer_First_Name, l.Last_Name AS Lecturer_Last_Name
+FROM Building b
+JOIN Room r ON b.Building_ID = r.Building_ID
+JOIN Class c ON r.Room_ID = c.Room_ID
+JOIN Subject s ON c.Subject_ID = s.Subject_ID
+JOIN Lecturer l ON c.Lecturer_ID = l.Lecturer_ID;
+</sql><current_tab id="0"/></tab_sql></sqlb_project>
