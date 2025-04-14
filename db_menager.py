@@ -87,6 +87,25 @@ LECTURERS_CLASSES_VIEW = (
     "GROUP BY c.Class_ID "
     "ORDER BY l.Last_Name, l.First_Name;"
 )
+
+STUDENTS_ON_CLASS = (
+    "SELECT " \
+    "st.Student_Index, " \
+    "st.First_Name, " \
+    "st.Last_Name, " \
+    "c.Class_ID, " \
+    "s.Subject_Name " \
+"FROM " \
+    "Reservation r " \
+"JOIN " 
+   "Student st ON r.Student_Index = st.Student_Index " \
+"JOIN " \
+    "Class c ON r.Class_ID = c.Class_ID " \
+"JOIN " \
+    "Subject s ON c.Subject_ID = s.Subject_ID " \
+"WHERE " \
+    "c.Class_ID = :class_id; " \
+)
                          
 class dbMenager:
 
@@ -112,6 +131,12 @@ class dbMenager:
         """)
         self.connection.commit()
 
+    def students_on_class(self, class_id):
+        with self.connection:
+            cursor = self.connection.cursor()
+            cursor.execute(STUDENTS_ON_CLASS, {"class_id" : class_id})
+            records = cursor.fetchall()
+            print(*records, sep='\n')            
 
     def display_full_data(self):
         query = "SELECT * FROM FullDataView"
@@ -335,5 +360,5 @@ if __name__ == "__main__":
     # db.create_available_classes_view()
     # db.create_full_data_view()
     # db.create_view()
-    db.create_available_classes()
+    db.students_on_class(2)
     db.close()
