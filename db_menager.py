@@ -123,16 +123,12 @@ class dbMenager:
                 c.Start_Time,
                 c.End_Time,
                 res.Reservation_Date,
-                st.Student_Index,
-                st.First_Name AS Student_First_Name,
-                st.Last_Name AS Student_Last_Name
             FROM Class c
             JOIN Lecturer l ON c.Lecturer_ID = l.Lecturer_ID
             JOIN Subject s ON c.Subject_ID = s.Subject_ID
             JOIN Room r ON c.Room_ID = r.Room_ID
             JOIN Building b ON r.Building_ID = b.Building_ID
             LEFT JOIN Reservation res ON c.Class_ID = res.Class_ID
-            LEFT JOIN Student st ON res.Student_Index = st.Student_Index
             WHERE c.Is_Cancelled = 0;
         ''')
         self.connection.commit()
