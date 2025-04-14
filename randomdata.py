@@ -1,54 +1,99 @@
-import sqlite3
 import random
 from faker import Faker
+from db_menager import dbMenager
 
-# Tworzenie instancji generatora danych
 fake = Faker()
+db = dbMenager()
+db.create_tables()
 
-def add_random_data_to_database(db_name='zajecia.db', num_entries=10):
-    # Połączenie z bazą danych
-    connection = sqlite3.connect(db_name)
-    cursor = connection.cursor()
+def reset_database():
+    db.connection.execute("DELETE FROM Reservation")
+    db.connection.execute("DELETE FROM Class")
+    db.connection.execute("DELETE FROM WaitingList")
+    db.connection.execute("DELETE FROM Student")
+    db.connection.execute("DELETE FROM Room")
+    db.connection.execute("DELETE FROM Building")
+    db.connection.execute("DELETE FROM Lecturer")
+    db.connection.execute("DELETE FROM Subject")
+    db.connection.execute("DELETE FROM Reservation_Status")
+    db.connection.commit()
 
-    # Dodanie losowych danych do tabel
-    for _ in range(num_entries):
-        # Dodajemy dane do tabeli Building
-        building_id = f'B{random.randint(1, 10)}'
-        address = fake.address().replace("\n", " ")  # Faker generuje adres z nową linią
-        cursor.execute("INSERT OR IGNORE INTO Building(Building_ID, Address) VALUES (?, ?)", (building_id, address))
+def fill_basic_data():
+    buildings = [("B1", "Wittiga"), ("B2", "Grunwaldzka"), ("B3", "Norwida")]
+    for b_id, address in buildings:
+        db.addBuildingToDatabase(f"{b_id} {address}")
+    
+    for i in range(1, 6):
+        db.addLecturerToDatabase(f"{i} {fake.first_name()} {fake.last_name()} {fake.email()}")
 
-        # Dodajemy dane do tabeli Room
-        room_id = random.randint(1, 20)
-        cursor.execute("INSERT OR IGNORE INTO Room(Room_ID, Building_ID) VALUES (?, ?)", (room_id, building_id))
+    for i in range(1, 6):
+        db.addSubjectToDatabase(f"{i} {fake.word().capitalize()}")
 
-        # Dodajemy dane do tabeli Lecturer
-        lecturer_id = random.randint(1, 10)
-        first_name = fake.first_name()
-        last_name = fake.last_name()
-        email = fake.email()
-        cursor.execute("INSERT OR IGNORE INTO Lecturer(Lecturer_ID, First_Name, Last_Name, Email) VALUES (?, ?, ?, ?)", 
-                       (lecturer_id, first_name, last_name, email))
+    for i in range(101, 106):
+        building = random.choice(buildings)[0]
+        db.addRoomToDatabase(f"{i} {building}")
+    
+    for i in range(1000, 1010):
+        db.exportStudentToDatabase(f"{i} {fake.first_name()} {fake.last_name()} Informatyka WIEA {random.randint(1, 5)}")
 
-        # Dodajemy dane do tabeli Subject
-        subject_id = random.randint(1, 10)
-        subject_name = fake.job()
-        cursor.execute("INSERT OR IGNORE INTO Subject(Subject_ID, Subject_Name) VALUES (?, ?)", 
-                       (subject_id, subject_name))
+    status_names = ["Zapisany", "Oczekujący", "Anulowany"]
+    for i, name in enumerate(status_names, start=1):
+        db.connection.execute("INSERT INTO Reservation_Status(Status_ID, Status_Name) VALUES (?, ?)", (i, name))
+    db.connection.commit()
 
-        # Dodajemy dane do tabeli Class
-        start_time = fake.time()
-        end_time = fake.time()
-        max_capacity = random.randint(20, 50)
-        enrolled_count = random.randint(0, max_capacity)
-        subject_id = random.randint(1, 10)  # Zakładając, że mamy przynajmniej 10 przedmiotów
-        room_id = random.randint(1, 20)
-        cursor.execute("INSERT OR IGNORE INTO Class(Lecturer_ID, Start_Time, End_Time, Max_Capacity, Enrolled_Count, Subject_ID, Room_ID) VALUES (?, ?, ?, ?, ?, ?, ?)", 
-                       (lecturer_id, start_time, end_time, max_capacity, enrolled_count, subject_id, room_id))
+def generate_classes_and_reservations():
+    used_slots = set()
 
-    # Zatwierdzenie zmian w bazie danych i zamknięcie połączenia
-    connection.commit()
-    connection.close()
+    # Tworzenie zajęć
+    for _ in range(20):  # 20 zajęć
+        start_hour = random.randint(8, 16)
+        start_time = f"{start_hour:02d}:00"
+        end_time = f"{start_hour+1:02d}:30"
 
-# Uruchomienie funkcji generującej dane
-add_random_data_to_database(db_name='zajecia.db', num_entries=10)
+        slot = (start_time, end_time)
+        if slot in used_slots:
+            continue
+        used_slots.add(slot)
 
+        lecturer_id = random.randint(1, 5)
+        subject_id = random.randint(1, 5)
+        room_id = random.randint(101, 105)
+        is_cancelled = random.choice([0, 1])
+        waiting_count = random.randint(0, 5)
+
+        db.connection.execute(
+            "INSERT INTO Class(Lecturer_ID, Start_Time, End_Time, Is_Cancelled, Subject_ID, Waiting_List_Count, Room_ID) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (lecturer_id, start_time, end_time, is_cancelled, subject_id, waiting_count, room_id)
+        )
+
+    db.connection.commit()
+
+    # 🧠 Pobierz poprawne Class_ID
+    class_ids = db.connection.execute("SELECT Class_ID FROM Class").fetchall()
+    student_ids = db.connection.execute("SELECT Student_Index FROM Student").fetchall()
+
+    # Dodaj rezerwacje
+    for class_row in class_ids:
+        class_id = class_row[0]
+        selected_students = random.sample(student_ids, k=random.randint(1, min(5, len(student_ids))))
+        for student_row in selected_students:
+            student_id = student_row[0]
+            date = fake.date_between(start_date='-30d', end_date='today')
+            status = random.randint(1, 3)
+            note = fake.word()
+            try:
+                db.connection.execute(
+                    "INSERT INTO Reservation(Student_Index, Class_ID, Reservation_Date, Status_ID, Note) VALUES (?, ?, ?, ?, ?)",
+                    (student_id, class_id, str(date), status, note)
+                )
+            except:
+                continue
+
+    db.connection.commit()
+
+if __name__ == "__main__":
+    reset_database()
+    fill_basic_data()
+    generate_classes_and_reservations()
+    db.create_view()
+    db.close()

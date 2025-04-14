@@ -76,6 +76,110 @@ ADD_SUBJECT = "INSERT INTO Subject(Subject_ID, Subject_Name) VALUES (?,?)"
 
 class dbMenager:
 
+    def create_classes_with_student_count_view(self):
+        self.connection.execute("""
+        CREATE VIEW IF NOT EXISTS ClassesWithStudentCountView AS
+        SELECT
+            c.Class_ID,
+            s.Subject_Name,
+            l.First_Name || ' ' || l.Last_Name AS Lecturer_Name,
+            r.Room_ID,
+            b.Address AS Building_Address,
+            COUNT(res.Student_Index) AS Enrolled_Students
+        FROM
+            Class c
+        JOIN Subject s ON c.Subject_ID = s.Subject_ID
+        JOIN Lecturer l ON c.Lecturer_ID = l.Lecturer_ID
+        JOIN Room r ON c.Room_ID = r.Room_ID
+        JOIN Building b ON r.Building_ID = b.Building_ID
+        LEFT JOIN Reservation res ON res.Class_ID = c.Class_ID
+        GROUP BY c.Class_ID
+        ORDER BY c.Class_ID;
+        """)
+        self.connection.commit()
+
+
+    def display_full_data(self):
+        query = "SELECT * FROM FullDataView"
+        connection = sqlite3.connect('zajecia.db')
+        cursor = connection.cursor()
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        
+        for row in rows:
+            print(row)  # Możesz przetwarzać dane lub je zapisać w bardziej przejrzysty sposób
+        connection.close()
+
+    def create_available_classes_view(self):
+        self.connection.execute('''
+            CREATE VIEW IF NOT EXISTS AvailableClassesView AS
+            SELECT
+                c.Class_ID,
+                s.Subject_Name,
+                l.First_Name AS Lecturer_First_Name,
+                l.Last_Name AS Lecturer_Last_Name,
+                b.Address AS Building_Address,
+                r.Room_ID,
+                c.Start_Time,
+                c.End_Time,
+                res.Reservation_Date,
+                st.Student_Index,
+                st.First_Name AS Student_First_Name,
+                st.Last_Name AS Student_Last_Name
+            FROM Class c
+            JOIN Lecturer l ON c.Lecturer_ID = l.Lecturer_ID
+            JOIN Subject s ON c.Subject_ID = s.Subject_ID
+            JOIN Room r ON c.Room_ID = r.Room_ID
+            JOIN Building b ON r.Building_ID = b.Building_ID
+            LEFT JOIN Reservation res ON c.Class_ID = res.Class_ID
+            LEFT JOIN Student st ON res.Student_Index = st.Student_Index
+            WHERE c.Is_Cancelled = 0;
+        ''')
+        self.connection.commit()
+
+
+
+    def create_full_data_view(self):
+        query = """
+        CREATE VIEW IF NOT EXISTS FullDataView AS
+        SELECT 
+            b.Building_ID,
+            b.Address AS Building_Address,
+            r.Room_ID,
+            s.Subject_Name,
+            c.Start_Time,
+            c.End_Time,
+            c.Max_Capacity,
+            c.Enrolled_Count,
+            c.Is_Cancelled,
+            l.Lecturer_ID,
+            l.First_Name AS Lecturer_First_Name,
+            l.Last_Name AS Lecturer_Last_Name,
+            st.Student_Index,
+            st.First_Name AS Student_First_Name,
+            st.Last_Name AS Student_Last_Name,
+            st.Major,
+            st.Department,
+            st.Year_of_Study,
+            res.Reservation_Date,
+            res.Status_ID AS Reservation_Status,
+            res.Note AS Reservation_Note
+        FROM 
+            Building b
+        JOIN Room r ON b.Building_ID = r.Building_ID
+        JOIN Class c ON r.Room_ID = c.Room_ID
+        JOIN Subject s ON c.Subject_ID = s.Subject_ID
+        JOIN Lecturer l ON c.Lecturer_ID = l.Lecturer_ID
+        JOIN Reservation res ON res.Class_ID = c.Class_ID
+        JOIN Student st ON res.Student_Index = st.Student_Index;
+        """
+        connection = sqlite3.connect('zajecia.db')
+        cursor = connection.cursor()
+        cursor.execute(query)
+        connection.commit()
+        connection.close()
+
+
     def create_view(self):
         query = """
         CREATE VIEW IF NOT EXISTS BuildingSubjectView AS
@@ -146,8 +250,12 @@ class dbMenager:
             roomID = text.split()[0]
             BuildingID = text.split()[1]
 
-            self.connection.execute(ADD_ROOM, (roomID, BuildingID))
-            self.connection.commit()
+            # Sprawdzenie czy już istnieje
+            result = self.connection.execute("SELECT 1 FROM Room WHERE Room_ID = ?", (roomID,)).fetchone()
+            if not result:
+                self.connection.execute(ADD_ROOM, (roomID, BuildingID))
+                self.connection.commit()
+
 
     def addBuildingToDatabase(self, text : str):
         with self.connection:
@@ -183,5 +291,7 @@ if __name__ == "__main__":
     #db.addSubjectToDatabase("1 Matematyka")
     #db.addRoomToDatabase("101 1")
     #db.importClassesToDatabase("Zajecia 09:00 10:30")
+    db.create_classes_with_student_count_view()
+
     db.create_view()
     db.close()
