@@ -38,13 +38,17 @@ CREATE_STUDENT_TABLE = "CREATE TABLE IF NOT EXISTS Student (Student_Index INTEGE
 CREATE_SUBJECT_TABLE = "CREATE TABLE IF NOT EXISTS Subject (Subject_ID INTEGER PRIMARY KEY, " \
                                                             "Subject_Name TEXT NOT NULL)"
 
+CREATE_RESERVATION_STATUS_TABLE = "CREATE TABLE IF NOT EXISTS Reservation_Status (Status_ID INTEGER PRIMARY KEY, " \
+                                                            "Status_Name TEXT NOT NULL)"
+
 CREATE_RESERVATION_TABLE = "CREATE TABLE IF NOT EXISTS Reservation (Student_Index INTEGER NOT NULL, " \
                                                                     "Class_ID INTEGER NOT NULL,  " \
                                                                     "Reservation_Date TEXT NOT NULL, " \
-                                                                    "Status TEXT NOT NULL, " \
+                                                                    "Status_ID INTEGER NOT NULL, " \
                                                                     "Note TEXT NOT NULL," \
                                                                     "FOREIGN KEY(Class_ID) REFERENCES Class(Class_ID)," \
-                                                                    "FOREIGN KEY(Student_Index) REFERENCES Student(Student_Index))"
+                                                                    "FOREIGN KEY(Student_Index) REFERENCES Student(Student_Index)," \
+                                                                    "FOREIGN KEY(Status_ID) REFERENCES Reservation_Status(Status_ID))"
 
 CREATE_WAITING_LIST_TABLE = "CREATE TABLE IF NOT EXISTS WaitingList (Waiting_ID INTEGER PRIMARY KEY AUTOINCREMENT," \
                                                                     "Student_Index INTEGER NOT NULL, " \
@@ -80,6 +84,7 @@ class dbMenager:
             self.connection.execute(CREATE_BUILDING_TABLE)
             self.connection.execute(CREATE_CLASS_TABLE)
             self.connection.execute(CREATE_SUBJECT_TABLE)
+            self.connection.execute(CREATE_RESERVATION_STATUS_TABLE)
             self.connection.execute(CREATE_LECTURER_TABLE)
             self.connection.execute(CREATE_ROOM_TABLE)
             self.connection.execute(CREATE_STUDENT_TABLE)
@@ -91,7 +96,7 @@ class dbMenager:
     def close(self):
         self.connection.close()
 
-    def importClassesFromFile(self, activity : str):
+    def importClassesToDatabase(self, activity : str):
         with self.connection:
             insertedClass = activity.split()
             self.connection.execute(INSERT_CLASSES, (15, insertedClass[1], insertedClass[2],
@@ -108,7 +113,7 @@ class dbMenager:
 
             self.connection.execute(INSERT_STUDENT, (index, name, surname, major, department, yearOfStudy))
             self.connection.commit()
-    def addReservation(self, text : str):
+    def addReservationToDatabase(self, text : str):
         with self.connection:
             index = text.split()[0]
             classID = text.split()[1]
@@ -119,7 +124,7 @@ class dbMenager:
             self.connection.execute(ADD_RESERVATION, (index, classID, reservationDate, status, note))
             self.connection.commit()
 
-    def addRoom(self, text):
+    def addRoomToDatabase(self, text):
         with self.connection:
             roomID = text.split()[0]
             BuildingID = text.split()[1]
@@ -127,7 +132,7 @@ class dbMenager:
             self.connection.execute(ADD_ROOM, (roomID, BuildingID))
             self.connection.commit()
 
-    def addBuilding(self, text : str):
+    def addBuildingToDatabase(self, text : str):
         with self.connection:
             buildingID = text.split()[0]
             address = text.split()[1]
@@ -135,7 +140,7 @@ class dbMenager:
             self.connection.execute(ADD_BUILDING, (buildingID, address))
             self.connection.commit()
 
-    def addLecturer(self, text : str):
+    def addLecturerToDatabase(self, text : str):
         with self.connection:
             lecturerID = text.split()[0]
             firstName = text.split()[1]
@@ -145,7 +150,7 @@ class dbMenager:
             self.connection.execute(ADD_LECTURER, (lecturerID, firstName, sureName, email))
             self.connection.commit()
 
-    def addSubject(self, text : str):
+    def addSubjectToDatabase(self, text : str):
         with self.connection:
             subjectID = text.split()[0]
             subjectName = text.split()[1]
@@ -156,5 +161,5 @@ class dbMenager:
 if __name__ == "__main__":
     db = dbMenager()
     db.create_tables()
-    db.addBuilding("23 Wittiga")
+    db.addBuildingToDatabase("23 Wittiga")
     db.close()
