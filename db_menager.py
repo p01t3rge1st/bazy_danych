@@ -74,6 +74,20 @@ ADD_LECTURER = "INSERT INTO Lecturer(Lecturer_ID, First_Name, Last_Name, Email) 
 
 ADD_SUBJECT = "INSERT INTO Subject(Subject_ID, Subject_Name) VALUES (?,?)"
 
+LECTURERS_CLASSES_VIEW = (
+    "CREATE VIEW IF NOT EXISTS LecturersClasses AS "
+    "SELECT "
+    "c.Class_ID, "
+    "s.Subject_Name, "
+    "l.First_Name || ' ' || l.Last_Name AS Lecturer_Name "
+    "FROM Class c "
+    "JOIN Subject s ON c.Subject_ID = s.Subject_ID "
+    "JOIN Lecturer l ON c.Lecturer_ID = l.Lecturer_ID "
+    "LEFT JOIN Reservation res ON res.Class_ID = c.Class_ID "
+    "GROUP BY c.Class_ID "
+    "ORDER BY l.Last_Name, l.First_Name;"
+)
+                         
 class dbMenager:
 
     def create_classes_with_student_count_view(self):
@@ -215,6 +229,12 @@ class dbMenager:
         connection.commit()
         connection.close()
 
+    def create_available_classes(self):
+        with self.connection:
+            self.connection.execute(LECTURERS_CLASSES_VIEW)
+            self.connection.commit()
+
+
 
     def __init__(self, db_name = "zajecia.db"):
         self.connection = sqlite3.connect(db_name)
@@ -310,9 +330,10 @@ if __name__ == "__main__":
     #db.addSubjectToDatabase("1 Matematyka")
     #db.addRoomToDatabase("101 1")
     #db.importClassesToDatabase("Zajecia 09:00 10:30")
-    db.create_classes_with_student_count_view()
-    db.create_cancelled_classes_view()
-    db.create_available_classes_view()
-    db.create_full_data_view()
-    db.create_view()
+    # db.create_classes_with_student_count_view()
+    # db.create_cancelled_classes_view()
+    # db.create_available_classes_view()
+    # db.create_full_data_view()
+    # db.create_view()
+    db.create_available_classes()
     db.close()
