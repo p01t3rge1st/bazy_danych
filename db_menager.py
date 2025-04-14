@@ -122,7 +122,7 @@ class dbMenager:
                 r.Room_ID,
                 c.Start_Time,
                 c.End_Time,
-                res.Reservation_Date,
+                res.Reservation_Date
             FROM Class c
             JOIN Lecturer l ON c.Lecturer_ID = l.Lecturer_ID
             JOIN Subject s ON c.Subject_ID = s.Subject_ID
@@ -130,6 +130,29 @@ class dbMenager:
             JOIN Building b ON r.Building_ID = b.Building_ID
             LEFT JOIN Reservation res ON c.Class_ID = res.Class_ID
             WHERE c.Is_Cancelled = 0;
+        ''')
+        self.connection.commit()
+
+    def create_cancelled_classes_view(self):
+        self.connection.execute('''
+            CREATE VIEW IF NOT EXISTS CancelledClassesView AS
+            SELECT
+                c.Class_ID,
+                s.Subject_Name,
+                l.First_Name AS Lecturer_First_Name,
+                l.Last_Name AS Lecturer_Last_Name,
+                b.Address AS Building_Address,
+                r.Room_ID,
+                c.Start_Time,
+                c.End_Time,
+                res.Reservation_Date
+            FROM Class c
+            JOIN Lecturer l ON c.Lecturer_ID = l.Lecturer_ID
+            JOIN Subject s ON c.Subject_ID = s.Subject_ID
+            JOIN Room r ON c.Room_ID = r.Room_ID
+            JOIN Building b ON r.Building_ID = b.Building_ID
+            LEFT JOIN Reservation res ON c.Class_ID = res.Class_ID
+            WHERE c.Is_Cancelled = 1;
         ''')
         self.connection.commit()
 
@@ -288,6 +311,8 @@ if __name__ == "__main__":
     #db.addRoomToDatabase("101 1")
     #db.importClassesToDatabase("Zajecia 09:00 10:30")
     db.create_classes_with_student_count_view()
-
+    db.create_cancelled_classes_view()
+    db.create_available_classes_view()
+    db.create_full_data_view()
     db.create_view()
     db.close()
