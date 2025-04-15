@@ -50,12 +50,8 @@ CREATE_RESERVATION_TABLE = "CREATE TABLE IF NOT EXISTS Reservation (Student_Inde
                                                                     "FOREIGN KEY(Student_Index) REFERENCES Student(Student_Index)," \
                                                                     "FOREIGN KEY(Status_ID) REFERENCES Reservation_Status(Status_ID))"
 
-CREATE_WAITING_LIST_TABLE = "CREATE TABLE IF NOT EXISTS WaitingList (Waiting_ID INTEGER PRIMARY KEY AUTOINCREMENT," \
-                                                                    "Student_Index INTEGER NOT NULL, " \
-                                                                    "Class_ID INTEGER NOT NULL, " \
-                                                                    "Request_Date TEXT NOT NULL, " \
-                                                                    "FOREIGN KEY(Student_Index) REFERENCES Student(Student_Index)," \
-                                                                    "FOREIGN KEY(Class_ID) REFERENCES Class(Class_ID))"
+WAITING_LIST_VIEW = "CREATE VIEW IF NOT EXISTS WaitingList AS " \
+                    "SELECT * FROM Reservation WHERE Status_ID = 2"
 
 INSERT_CLASSES = "INSERT INTO Class(Lecturer_ID, Start_Time, End_Time, Is_Cancelled, Subject_ID," \
 "Waiting_List_Count, Room_ID) VALUES (?, ?,?,?,?,?,?)"
@@ -274,7 +270,6 @@ class dbMenager:
             self.connection.execute(CREATE_ROOM_TABLE)
             self.connection.execute(CREATE_STUDENT_TABLE)
             self.connection.execute(CREATE_RESERVATION_TABLE)
-            self.connection.execute(CREATE_WAITING_LIST_TABLE)
             
             
 
@@ -348,6 +343,11 @@ class dbMenager:
             self.connection.execute(ADD_SUBJECT, (subjectID, subjectName))
             self.connection.commit()
 
+    def waitingListView(self):
+        with self.connection:
+            self.connection.execute(WAITING_LIST_VIEW)
+            self.connection.commit()
+
 if __name__ == "__main__":
     db = dbMenager()
     db.create_tables()
@@ -361,5 +361,5 @@ if __name__ == "__main__":
     # db.create_available_classes_view()
     # db.create_full_data_view()
     # db.create_view()
-    db.students_on_class(2)
+    db.waitingListView()
     db.close()
