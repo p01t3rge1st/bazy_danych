@@ -341,8 +341,9 @@ class dbMenager:
 
     def addSubjectToDatabase(self, text : str):
         with self.connection:
-            subjectID = text.split()[0]
-            subjectName = text.split()[1]
+            parts = text.split()
+            subjectID = parts[0]
+            subjectName = " ".join(parts[1:])
 
             self.connection.execute(ADD_SUBJECT, (subjectID, subjectName))
             self.connection.commit()

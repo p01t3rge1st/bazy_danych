@@ -26,8 +26,10 @@ def fill_basic_data():
     for i in range(1, 6):
         db.addLecturerToDatabase(f"{i} {fake.first_name()} {fake.last_name()} {fake.email()}")
 
-    for i in range(1, 6):
-        db.addSubjectToDatabase(f"{i} {fake.word().capitalize()}")
+    subjectNames = ["Joga", "Piłka nożna", "Siatkówka", "Piłka ręczna", "Szachy"]
+    for i in range(5):
+        randomSubject = random.choice(subjectNames)
+        db.addSubjectToDatabase(f"{i} {randomSubject}")
 
     for i in range(101, 106):
         building = random.choice(buildings)[0]
@@ -44,8 +46,7 @@ def fill_basic_data():
 def generate_classes_and_reservations():
     used_slots = set()
 
-    # Tworzenie zajęć
-    for _ in range(20):  # 20 zajęć
+    for _ in range(20):
         start_hour = random.randint(8, 16)
         start_time = f"{start_hour:02d}:00"
         end_time = f"{start_hour+1:02d}:30"
@@ -68,11 +69,9 @@ def generate_classes_and_reservations():
 
     db.connection.commit()
 
-    # 🧠 Pobierz poprawne Class_ID
     class_ids = db.connection.execute("SELECT Class_ID FROM Class").fetchall()
     student_ids = db.connection.execute("SELECT Student_Index FROM Student").fetchall()
 
-    # Dodaj rezerwacje
     for class_row in class_ids:
         class_id = class_row[0]
         selected_students = random.sample(student_ids, k=random.randint(1, min(5, len(student_ids))))
