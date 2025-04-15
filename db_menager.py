@@ -53,6 +53,9 @@ CREATE_RESERVATION_TABLE = "CREATE TABLE IF NOT EXISTS Reservation (Student_Inde
 WAITING_LIST_VIEW = "CREATE VIEW IF NOT EXISTS WaitingList AS " \
                     "SELECT * FROM Reservation WHERE Status_ID = 2"
 
+WAITING_LIST_IN_CLASS_VIEW = "CREATE VIEW IF NOT EXISTS WaitingList AS " \
+                             "SELECT * FROM Reservation WHERE Status_ID = 2, Class_ID = ?"
+
 INSERT_CLASSES = "INSERT INTO Class(Lecturer_ID, Start_Time, End_Time, Is_Cancelled, Subject_ID," \
 "Waiting_List_Count, Room_ID) VALUES (?, ?,?,?,?,?,?)"
 
@@ -348,6 +351,13 @@ class dbMenager:
             self.connection.execute(WAITING_LIST_VIEW)
             self.connection.commit()
 
+    def waitingListViewInClass(self, class_ID : int):
+        with self.connection:
+            cursor = self.connection.cursor()
+            result = cursor.execute("SELECT * FROM WaitingList WHERE Class_ID = ?", (class_ID, )).fetchall()
+
+            print(*result, sep='\n')
+
 if __name__ == "__main__":
     db = dbMenager()
     db.create_tables()
@@ -361,5 +371,5 @@ if __name__ == "__main__":
     # db.create_available_classes_view()
     # db.create_full_data_view()
     # db.create_view()
-    db.waitingListView()
+    db.waitingListViewInClass(5)
     db.close()
