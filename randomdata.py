@@ -36,7 +36,7 @@ def fill_basic_data():
         db.addRoomToDatabase(f"{i} {building}")
     
     for i in range(1000, 1010):
-        db.exportStudentToDatabase(f"{i} {fake.first_name()} {fake.last_name()} Informatyka WIEA {random.randint(1, 5)}")
+        db.exportStudentToDatabase(f"{i} {fake.first_name()} {fake.last_name()} Informatyka WIIT {random.randint(1, 5)}")
 
     status_names = ["Zapisany", "Oczekujący", "Anulowany"]
     for i, name in enumerate(status_names, start=1):
