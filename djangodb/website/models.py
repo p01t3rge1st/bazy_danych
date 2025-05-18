@@ -55,12 +55,11 @@ class Lecturer(models.Model):
 
 
 class Reservation(models.Model):
-    fake_id = models.AutoField(primary_key=True)
     student_index = models.ForeignKey('Student', models.DO_NOTHING, db_column='Student_Index')  # Field name made lowercase.
     class_field = models.ForeignKey(Class, models.DO_NOTHING, db_column='Class_ID')  # Field name made lowercase. Field renamed because it was a Python reserved word.
     reservation_date = models.TextField(db_column='Reservation_Date')  # Field name made lowercase.
     status = models.ForeignKey('ReservationStatus', models.DO_NOTHING, db_column='Status_ID')  # Field name made lowercase.
-    note = models.TextField(db_column='Note')  # Field name made lowercase.
+    note = models.TextField(db_column='Note', primary_key=True)  # Field name made lowercase.
 
     def __str__(self):
         return f"{self.student_index} {self.reservation_date} {self.class_field}"
