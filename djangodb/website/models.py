@@ -9,9 +9,5 @@ class Student(models.Model):
     department = models.CharField(max_length=50)
     year_of_study = models.IntegerField()
 
-    class Meta:
-        managed = False
-        db_table = 'Students'
-
     def __str__(self):
         return self.name + ' ' + self.last_name + ' ' + self.id
