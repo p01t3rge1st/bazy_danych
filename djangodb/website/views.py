@@ -10,11 +10,12 @@ def home(request):
 
 @login_required
 def student_panel(request):
-    # Zakładamy, że username to indeks studenta
+    # Sprawdź, czy użytkownik jest studentem (czy istnieje Student z takim username)
     try:
         student = Student.objects.get(student_index=request.user.username)
     except Student.DoesNotExist:
-        student = None
+        # Jeśli nie jest studentem, przekieruj np. na stronę główną lub admina
+        return redirect('/')
     return render(request, 'student_panel.html', {'student': student})
 
 def custom_login(request):
