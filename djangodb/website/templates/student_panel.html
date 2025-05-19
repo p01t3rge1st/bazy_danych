@@ -1,0 +1,11 @@
+<h2>Panel studenta</h2>
+{% if student %}
+    <p>Witaj, {{ student.first_name }} {{ student.last_name }}!</p>
+    <p>Twój indeks: {{ student.student_index }}</p>
+{% else %}
+    <p>Nie znaleziono danych studenta.</p>
+{% endif %}
+<form method="post" action="{% url 'logout' %}?next=/login/">
+    {% csrf_token %}
+    <button type="submit">Wyloguj się</button>
+</form>
