@@ -2,6 +2,40 @@
 {% if student %}
     <p>Witaj, {{ student.first_name }} {{ student.last_name }}!</p>
     <p>Twój indeks: {{ student.student_index }}</p>
+
+    <h3>Twoje zajęcia:</h3>
+    <ul>
+    {% for c in reserved_classes %}
+        <li>
+            {{ c }}
+            <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="class_id" value="{{ c.class_id }}">
+                <input type="hidden" name="action" value="unenroll">
+                <button type="submit">Wypisz się</button>
+            </form>
+        </li>
+    {% empty %}
+        <li>Brak zapisanych zajęć.</li>
+    {% endfor %}
+    </ul>
+
+    <h3>Dostępne zajęcia:</h3>
+    <ul>
+    {% for c in available_classes %}
+        <li>
+            {{ c }}
+            <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="class_id" value="{{ c.class_id }}">
+                <input type="hidden" name="action" value="enroll">
+                <button type="submit">Zapisz się</button>
+            </form>
+        </li>
+    {% empty %}
+        <li>Brak dostępnych zajęć.</li>
+    {% endfor %}
+    </ul>
 {% else %}
     <p>Nie znaleziono danych studenta.</p>
 {% endif %}

@@ -1,0 +1,24 @@
+<h2>Panel prowadzącego</h2>
+<p>Witaj, {{ lecturer.first_name }} {{ lecturer.last_name }}!</p>
+
+<h3>Twoje zajęcia i zapisani studenci:</h3>
+<ul>
+{% for c, students in class_students %}
+    <li>
+        <strong>{{ c }}</strong>
+        <ul>
+        {% for s in students %}
+            <li>{{ s.first_name }} {{ s.last_name }} (indeks: {{ s.student_index }})</li>
+        {% empty %}
+            <li>Brak zapisanych studentów.</li>
+        {% endfor %}
+        </ul>
+    </li>
+{% empty %}
+    <li>Nie prowadzisz żadnych zajęć.</li>
+{% endfor %}
+</ul>
+<form method="post" action="{% url 'logout' %}?next=/login/">
+    {% csrf_token %}
+    <button type="submit">Wyloguj się</button>
+</form>
