@@ -17,7 +17,12 @@
         <ul class="list-group">
             {% for c in reserved_classes %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
-                {{ c }}
+                <span>
+                    {{ c }}
+                    {% if c.is_cancelled %}
+                        <span class="badge bg-danger ms-2">Anulowane</span>
+                    {% endif %}
+                </span>
                 <form method="post" class="d-inline">
                     {% csrf_token %}
                     <input type="hidden" name="class_id" value="{{ c.class_id }}">
@@ -36,12 +41,17 @@
         <ul class="list-group">
             {% for c in available_classes %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
-                {{ c }}
+                <span>
+                    {{ c }}
+                    {% if c.is_cancelled %}
+                        <span class="badge bg-danger ms-2">Anulowane</span>
+                    {% endif %}
+                </span>
                 <form method="post" class="d-inline">
                     {% csrf_token %}
                     <input type="hidden" name="class_id" value="{{ c.class_id }}">
                     <input type="hidden" name="action" value="enroll">
-                    <button type="submit" class="btn btn-success btn-sm">➕ Zapisz się</button>
+                    <button type="submit" class="btn btn-success btn-sm" {% if c.is_cancelled %}disabled{% endif %}>➕ Zapisz się</button>
                 </form>
             </li>
             {% empty %}

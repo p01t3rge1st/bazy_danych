@@ -1,2 +1,42 @@
-<h1>Witaj w systemie rezerwacji zajęć!</h1>
-<p>Przejdź do <a href="/admin/">panelu admina</a> lub <a href="/login/">zaloguj się</a>.</p>
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>System Rezerwacji Zajęć</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(270deg, #a1c4fd, #c2e9fb, #fbc2eb, #a6c1ee);
+            background-size: 800% 800%;
+            animation: gradientBG 15s ease infinite;
+            display: flex;
+            min-height: 100vh;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .welcome-box {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-box">
+        <h1 class="mb-4">Witaj w OSUS+!</h1>
+        <p class="lead">Przejdź do:</p>
+        <div class="d-grid gap-2 col-8 mx-auto">
+            <a href="/login/" class="btn btn-primary">Panel studenta (Logowanie)</a>
+            <a href="/admin/" class="btn btn-dark">Panel administratora</a>
+        </div>
+    </div>
+</body>
+</html>

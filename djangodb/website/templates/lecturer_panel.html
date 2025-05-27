@@ -1,24 +1,68 @@
-<h2>Panel prowadzącego</h2>
-<p>Witaj, {{ lecturer.first_name }} {{ lecturer.last_name }}!</p>
+{% extends "base.html" %}
 
-<h3>Twoje zajęcia i zapisani studenci:</h3>
-<ul>
-{% for c, students in class_students %}
-    <li>
-        <strong>{{ c }}</strong>
-        <ul>
-        {% for s in students %}
-            <li>{{ s.first_name }} {{ s.last_name }} (indeks: {{ s.student_index }})</li>
-        {% empty %}
-            <li>Brak zapisanych studentów.</li>
-        {% endfor %}
-        </ul>
-    </li>
-{% empty %}
-    <li>Nie prowadzisz żadnych zajęć.</li>
-{% endfor %}
-</ul>
-<form method="post" action="{% url 'logout' %}?next=/login/">
-    {% csrf_token %}
-    <button type="submit">Wyloguj się</button>
-</form>
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Panel prowadzącego</h2>
+
+    <div class="card p-3 mb-4">
+        <h5>Witaj, {{ lecturer.first_name }} {{ lecturer.last_name }}!</h5>
+    </div>
+
+    <div class="card p-3 mb-4">
+        <h5>Twoje zajęcia i zapisani studenci:</h5>
+
+        {% if class_students %}
+            <ul class="list-group">
+                {% for c, students in class_students %}
+                <li class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ c }}</strong>
+                            {% if c.is_cancelled %}
+                                <span class="badge bg-danger ms-2">Anulowane</span>
+                            {% endif %}
+                        </div>
+                        <form method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="class_id" value="{{ c.class_id }}">
+                            {% if not c.is_cancelled %}
+                                <input type="hidden" name="action" value="cancel">
+                                <button type="submit" class="btn btn-danger btn-sm">Anuluj zajęcia</button>
+                            {% else %}
+                                <input type="hidden" name="action" value="restore">
+                                <button type="submit" class="btn btn-success btn-sm">Przywróć zajęcia</button>
+                            {% endif %}
+                        </form>
+                    </div>
+                    {% if students %}
+                        <ul class="mt-2 ms-3 list-unstyled">
+                            {% for s in students %}
+                            <li class="d-flex align-items-center mb-1">
+                                <form method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="class_id" value="{{ c.class_id }}">
+                                    <input type="hidden" name="student_id" value="{{ s.student_index }}">
+                                    <input type="hidden" name="action" value="kick">
+                                    <button type="submit" class="btn btn-warning btn-sm py-0 px-2 me-2" style="font-size: 0.8em;">Wyrzuć</button>
+                                </form>
+                                <span>{{ s.first_name }} {{ s.last_name }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted mt-2 ms-3">Brak zapisanych studentów.</p>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted mt-2">Nie prowadzisz żadnych zajęć.</p>
+        {% endif %}
+    </div>
+
+    <form method="post" action="{% url 'logout' %}?next=/login/" class="mt-3">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-secondary">Wyloguj się</button>
+    </form>
+</div>
+{% endblock %}

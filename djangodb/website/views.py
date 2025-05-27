@@ -57,7 +57,7 @@ def custom_login(request):
             login(request, user)
             if user.is_superuser:
                 return redirect('/admin/')
-            elif user.is_staff:
+            elif user.groups.filter(name="Lecturer").exists() or user.is_staff:
                 return redirect('/lecturer/')
             else:
                 return redirect('/panel/')
@@ -72,6 +72,22 @@ def lecturer_panel(request):
     except (Lecturer.DoesNotExist, ValueError):
         return redirect('/')
 
+    # Obsługa anulowania/przywracania zajęć
+    if request.method == 'POST':
+        class_id = request.POST.get('class_id')
+        action = request.POST.get('action')
+        if class_id and action:
+            try:
+                class_obj = Class.objects.get(class_id=class_id, lecturer=lecturer)
+                if action == 'cancel':
+                    class_obj.is_cancelled = 1
+                    class_obj.save()
+                elif action == 'restore':
+                    class_obj.is_cancelled = 0
+                    class_obj.save()
+            except Class.DoesNotExist:
+                pass
+
     # Zajęcia prowadzącego
     classes = Class.objects.filter(lecturer=lecturer)
     # Studenci zapisani na każde zajęcia
@@ -80,6 +96,17 @@ def lecturer_panel(request):
         reservations = Reservation.objects.filter(class_field=c, status__status_name="Zapisany")
         students = [r.student_index for r in reservations]
         class_students.append((c, students))
+
+    # Obsługa wyrzucania studentów z zajęć
+    if request.method == 'POST':
+        class_id = request.POST.get('class_id')
+        student_id = request.POST.get('student_id')
+        action = request.POST.get('action')
+        if action == 'kick' and class_id and student_id:
+            Reservation.objects.filter(
+                class_field_id=class_id,
+                student_index_id=student_id
+            ).delete()
 
     return render(request, 'lecturer_panel.html', {
         'lecturer': lecturer,
