@@ -37,7 +37,7 @@ class Pdf_menager:
         for i in range(count):
             page = cls.reader.pages[i]
             text += page.extract_text()
-        return cls.pa4(text)
+        return text
     
     @classmethod
     def remove_file(cls) -> None:
@@ -52,18 +52,37 @@ class Pdf_menager:
         result = []
         lines = text.splitlines()
         for line in lines:
-            if not line.strip():
+            line = line.strip()
+            # Pomijaj nagłówki i puste linie
+            if not line or line.lower().startswith("dzień") or line.lower().startswith("sala"):
                 continue
             parts = line.split()
-            if len(parts) < 6:
+            # Sprawdź, czy pierwszy element to dzień tygodnia (skrót)
+            if parts and parts[0].lower() not in ['pon', 'wt', 'sr', 'czw', 'pt']:
                 continue
+            if len(parts) < 7:
+                continue
+
             day = parts[0]
             time = parts[1]
             building = parts[2]
             room = parts[3]
-            discipline = parts[4]
-            instructor = parts[5]
-            notes = " ".join(parts[6:]) if len(parts) > 6 else ""
+
+            # Sprawdź, czy dyscyplina to "piłka siatkowa"
+            if parts[4].lower() == "piłka" and parts[5].lower() == "siatkowa":
+                discipline = "Siatkówka"
+                instructor = parts[6]
+                notes = " ".join(parts[7:]) if len(parts) > 7 else ""
+            else:
+                discipline = parts[4]
+                instructor = parts[5]
+                notes = " ".join(parts[6:]) if len(parts) > 6 else ""
+
+            # Sprawdź, czy zajęcia są anulowane/odwołane
+            is_cancelled = 0
+            if "anulowane" in notes.lower() or "odwołane" in notes.lower():
+                is_cancelled = 1
+
             result.append({
                 "day": day,
                 "time": time,
@@ -71,7 +90,8 @@ class Pdf_menager:
                 "room": room,
                 "discipline": discipline,
                 "instructor": instructor,
-                "notes": notes
+                "notes": notes,
+                "is_cancelled": is_cancelled
             })
         return result
     
