@@ -8,5 +8,6 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='/login/'), name='logout'),
     path('panel/', views.student_panel, name='student_panel'),
     path('lecturer/', views.lecturer_panel, name='lecturer_panel'),  # nowy panel
+    path('class/<int:class_id>/', views.class_detail, name='class_detail'), 
 ]
 

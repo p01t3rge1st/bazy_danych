@@ -1,0 +1,35 @@
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Szczegóły zajęć</h2>
+    <div class="card p-3 mb-4">
+        <h5>{{ class_obj.subject }}</h5>
+        <ul class="list-group list-group-flush">
+    <li class="list-group-item"><b>Prowadzący:</b> {{lecturer}}</li>
+    <li class="list-group-item"><b>Dzień:</b> {{ day_of_week }}</li>
+    <li class="list-group-item"><b>Czas:</b> {{ start_time }} - {{ end_time }}</li>
+    <li class="list-group-item"><b>Sala:</b> {{ room }}</li>
+    {% if building %}
+        <li class="list-group-item"><b>Budynek:</b> {{ building }}</li>
+    {% endif %}
+    {% if address %}
+        <li class="list-group-item"><b>Adres:</b> {{ address }}</li>
+    {% endif %}
+    <li class="list-group-item"><b>Liczba zapisanych:</b> {{ enrolled_count }}</li>
+</ul>
+    </div>
+
+    {% if is_enrolled %}
+    <div class="card p-3 mb-4">
+        <h5>Lista uczestników:</h5>
+        <ul class="list-group">
+            {% for p in participants %}
+            <li class="list-group-item">{{ p.full_name }} ({{ p.index }})</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <a href="{% url 'student_panel' %}" class="btn btn-secondary">Powrót</a>
+</div>
+{% endblock %}

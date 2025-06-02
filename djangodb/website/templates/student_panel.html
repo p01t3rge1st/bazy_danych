@@ -20,23 +20,26 @@
         <h5>Twoje zajęcia:</h5>
         <ul class="list-group">
             {% for c in reserved_classes %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <span>
-                    {{ c }}
-                    {% if c.is_cancelled %}
-                        <span class="badge bg-danger ms-2">Anulowane</span>
-                    {% endif %}
-                </span>
-                <form method="post" class="d-inline">
-                    {% csrf_token %}
-                    <input type="hidden" name="class_id" value="{{ c.class_id }}">
-                    <input type="hidden" name="action" value="unenroll">
-                    <button type="submit" class="btn btn-danger btn-sm">❌ Wypisz się</button>
-                </form>
-            </li>
-            {% empty %}
-            <li class="list-group-item">Brak zapisanych zajęć.</li>
-            {% endfor %}
+<li class="list-group-item d-flex justify-content-between align-items-center">
+    <span>
+        {{ c }}
+        {% if c.is_cancelled %}
+            <span class="badge bg-danger ms-2">Anulowane</span>
+        {% endif %}
+    </span>
+    <div>
+        <a href="{% url 'class_detail' c.class_id %}" class="btn btn-info btn-sm me-2">Szczegóły</a>
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="class_id" value="{{ c.class_id }}">
+            <input type="hidden" name="action" value="unenroll">
+            <button type="submit" class="btn btn-danger btn-sm">❌ Wypisz się</button>
+        </form>
+    </div>
+</li>
+{% empty %}
+<li class="list-group-item">Brak zapisanych zajęć.</li>
+{% endfor %}
         </ul>
     </div>
 
@@ -44,23 +47,24 @@
         <h5>Dostępne zajęcia:</h5>
         <ul class="list-group">
             {% for c in available_classes %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <span>
-                    {{ c }}
-                    {% if c.is_cancelled %}
-                        <span class="badge bg-danger ms-2">Anulowane</span>
-                    {% endif %}
-                </span>
-                <form method="post" class="d-inline">
-                    {% csrf_token %}
-                    <input type="hidden" name="class_id" value="{{ c.class_id }}">
-                    <input type="hidden" name="action" value="enroll">
-                    <button type="submit" class="btn btn-success btn-sm" {% if c.is_cancelled %}disabled{% endif %}>➕ Zapisz się</button>
-                </form>
-            </li>
-            {% empty %}
-            <li class="list-group-item">Brak dostępnych zajęć.</li>
-            {% endfor %}
+<li class="list-group-item d-flex justify-content-between align-items-center">
+    <span>
+        {{ c }}
+        {% if c.is_cancelled %}
+            <span class="badge bg-danger ms-2">Anulowane</span>
+        {% endif %}
+    </span>
+    <div>
+        <a href="{% url 'class_detail' c.class_id %}" class="btn btn-info btn-sm me-2">Szczegóły</a>
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="class_id" value="{{ c.class_id }}">
+            <input type="hidden" name="action" value="enroll">
+            <button type="submit" class="btn btn-success btn-sm" {% if c.is_cancelled %}disabled{% endif %}>➕ Zapisz się</button>
+        </form>
+    </div>
+</li>
+{% endfor %}
         </ul>
     </div>
     {% else %}

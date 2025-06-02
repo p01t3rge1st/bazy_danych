@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import AuthenticationForm
 from .models import Student, Class, Reservation, ReservationStatus, Lecturer
 from django.db.models import Q
@@ -136,3 +136,55 @@ def lecturer_panel(request):
         'lecturer': lecturer,
         'class_students': class_students,
     })
+
+@login_required
+def class_detail(request, class_id):
+    try:
+        student = Student.objects.get(student_index=request.user.username)
+    except Student.DoesNotExist:
+        return redirect('/')
+
+    class_obj = get_object_or_404(Class, class_id=class_id)
+
+    # Czy student jest zapisany?
+    is_enrolled = Reservation.objects.filter(
+        student_index=student,
+        class_field=class_obj,
+        status__status_name="Zapisany"
+    ).exists()
+
+    # Lista zapisanych studentów
+    enrolled_reservations = Reservation.objects.filter(
+        class_field=class_obj,
+        status__status_name="Zapisany"
+    )
+    enrolled_count = enrolled_reservations.count()
+
+    participants = []
+    if is_enrolled:
+        participants = [
+            {
+                "full_name": f"{r.student_index.first_name} {r.student_index.last_name}",
+                "index": r.student_index.student_index
+            } for r in enrolled_reservations
+        ]
+
+    room = class_obj.room_id
+    building = getattr(room, 'building', None)
+    address = getattr(building, 'address', None) if building else None
+
+    context = {
+        'class_obj': class_obj,
+        'enrolled_count': enrolled_count,
+        'is_enrolled': is_enrolled,
+        'participants': participants,
+        'lecturer': class_obj.lecturer,
+        'room': room,
+        'building': building,
+        'address': address,
+        'day_of_week': class_obj.get_day_of_week_display(),
+        'start_time': class_obj.start_time,
+        'end_time': class_obj.end_time,
+    }
+
+    return render(request, 'class_detail.html', context)
