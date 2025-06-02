@@ -94,7 +94,7 @@ class Room(models.Model):
     building = models.ForeignKey(Building, models.DO_NOTHING, db_column='Building_ID')  # Field name made lowercase.
 
     def __str__(self):
-        return f"[{self.room_id}] {self.building}"
+        return f"[{self.room_id}]"
 
     class Meta:
         managed = False
