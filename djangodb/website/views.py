@@ -2,8 +2,9 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Student, Class, Reservation, ReservationStatus, Lecturer
+from .models import Student, Class, Building, Reservation, ReservationStatus, Lecturer, Room, Subject
 from django.db.models import Q
+from .scripts.pdf_dpwnloader import Pdf_menager
 
 def home(request):
     all_members = Student.objects.all()
@@ -74,6 +75,7 @@ def student_panel(request):
     })
 
 def custom_login(request):
+    import_classes_from_pdf()
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -169,9 +171,9 @@ def class_detail(request, class_id):
             } for r in enrolled_reservations
         ]
 
-    room = class_obj.room_id
-    building = getattr(room, 'building', None)
-    address = getattr(building, 'address', None) if building else None
+    room = class_obj.room  # zamiast class_obj.room_id
+    building = room.building if hasattr(room, 'building') else None
+    address = building.address if building else None
 
     context = {
         'class_obj': class_obj,
@@ -188,3 +190,60 @@ def class_detail(request, class_id):
     }
 
     return render(request, 'class_detail.html', context)
+
+
+
+_import_done = False
+
+def import_classes_from_pdf():
+    global _import_done
+    if _import_done:
+        return
+    data = Pdf_menager.run()
+    for entry in data:
+        room_str = entry["room"]
+        building_str = entry["building"]
+        # Wyciągnij dwie ostatnie cyfry z napisu sali
+        room_digits = ''.join(filter(str.isdigit, room_str))
+        room_id_str = room_digits[-2:] if len(room_digits) >= 2 else room_digits
+        if not room_id_str:
+            continue  # pomiń, jeśli nie ma cyfr w numerze sali
+        room_id = int(room_id_str)
+        # Utwórz lub pobierz budynek
+        building, _ = Building.objects.get_or_create(building_id=building_str)
+        # Utwórz lub pobierz salę z powiązaniem do budynku
+        room, _ = Room.objects.get_or_create(room_id=room_id, building=building)
+        instructor = entry["instructor"].strip()
+        instructor_parts = instructor.split()
+        if len(instructor_parts) > 1:
+            first_name = instructor_parts[0]
+            last_name = " ".join(instructor_parts[1:])
+        else:
+            first_name = ""
+            last_name = instructor
+
+        lecturer, _ = Lecturer.objects.get_or_create(
+            first_name=first_name,
+            last_name=last_name
+)
+        subject, _ = Subject.objects.get_or_create(subject_name=entry["discipline"])
+        time_range = entry["time"].split('-')
+        if len(time_range) < 2 or not time_range[0].strip() or not time_range[1].strip():
+            continue  # pomiń, jeśli nie ma poprawnych godzin
+        start_time = time_range[0].strip()
+        end_time = time_range[1].strip()
+        Class.objects.get_or_create(
+            day_of_week=entry["day"].lower()[:3],
+            start_time=start_time,
+            end_time=end_time,
+            room=room,
+            lecturer=lecturer,
+            subject=subject,
+            defaults={
+                "max_capacity": 30,
+                "enrolled_count": 0,
+                "is_cancelled": 0,
+                "waiting_list_count": 0,
+            }
+        )
+    _import_done = True
