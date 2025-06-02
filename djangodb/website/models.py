@@ -127,3 +127,11 @@ class Subject(models.Model):
     class Meta:
         managed = False
         db_table = 'Subject'
+
+
+class TrainingInstance(models.Model):
+    class_field = models.ForeignKey(Class, on_delete=models.CASCADE)
+    training_date = models.DateField()
+
+    class Meta:
+        unique_together = ('class_field', 'training_date')

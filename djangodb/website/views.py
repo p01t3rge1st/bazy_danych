@@ -5,13 +5,31 @@ from django.contrib.auth.forms import AuthenticationForm
 from .models import Student, Class, Building, Reservation, ReservationStatus, Lecturer, Room, Subject
 from django.db.models import Q
 from .scripts.pdf_dpwnloader import Pdf_menager
+import datetime
 
 def home(request):
     all_members = Student.objects.all()
     return render(request, 'home.html', {'all': all_members})
 
+def remove_old_reservations():
+    now = datetime.datetime.now().time()
+    today = datetime.date.today()
+    old_classes = Class.objects.filter(
+        day_of_week=get_day_short(today.weekday())
+    ).filter(
+        end_time__lt=now.strftime("%H:%M")
+    )
+
+    for c in old_classes:
+        Reservation.objects.filter(class_field=c).delete()
+
+def get_day_short(weekday):
+    days = ['pon', 'wt', 'sr', 'czw', 'pt']
+    return days[weekday] if 0 <= weekday <= 4 else None
+
 @login_required
 def student_panel(request):
+    remove_old_reservations()
     try:
         student = Student.objects.get(student_index=request.user.username)
     except Student.DoesNotExist:
