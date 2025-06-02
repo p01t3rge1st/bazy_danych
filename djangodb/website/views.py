@@ -16,6 +16,8 @@ def student_panel(request):
     except Student.DoesNotExist:
         return redirect('/')
 
+    message = None  # Komunikat o kolizji
+
     # Obsługa zapisów i wypisów
     if request.method == 'POST':
         class_id = request.POST.get('class_id')
@@ -23,15 +25,36 @@ def student_panel(request):
         if class_id and action:
             class_obj = Class.objects.get(class_id=class_id)
             if action == 'enroll':
-                # Status "zapisany" (załóżmy, że status_id=1 to "zapisany")
-                status = ReservationStatus.objects.get(status_name="Zapisany")
-                Reservation.objects.create(
-                    student_index=student,
-                    class_field=class_obj,
-                    reservation_date="dzisiaj",  # lub datetime.now()
-                    status=status,
-                    note=f"Rezerwacja {student.student_index}-{class_obj.class_id}"
+                # Sprawdzenie kolizji terminów
+                # Pobierz wszystkie zajęcia studenta w tym samym dniu
+                student_classes = Class.objects.filter(
+                    reservation__student_index=student,
+                    day_of_week=class_obj.day_of_week
                 )
+                # Sprawdź, czy godziny się nakładają
+                def time_overlap(start1, end1, start2, end2):
+                    return start1 < end2 and end1 > start2
+
+                overlap = False
+                for c in student_classes:
+                    if time_overlap(
+                        class_obj.start_time, class_obj.end_time,
+                        c.start_time, c.end_time
+                    ) and c.is_cancelled != 1:
+                        overlap = True
+                        break
+
+                if overlap:
+                    message = "Masz już zajęcia w tym dniu w kolidujących godzinach!"
+                else:
+                    status = ReservationStatus.objects.get(status_name="Zapisany")
+                    Reservation.objects.create(
+                        student_index=student,
+                        class_field=class_obj,
+                        reservation_date="dzisiaj",  # lub datetime.now()
+                        status=status,
+                        note=f"Rezerwacja {student.student_index}-{class_obj.class_id}"
+                    )
             elif action == 'unenroll':
                 Reservation.objects.filter(
                     student_index=student,
@@ -47,6 +70,7 @@ def student_panel(request):
         'student': student,
         'reserved_classes': reserved_classes,
         'available_classes': available_classes,
+        'message': message,  # Przekaż komunikat do szablonu
     })
 
 def custom_login(request):

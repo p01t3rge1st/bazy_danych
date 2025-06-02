@@ -12,6 +12,10 @@
         <p>Twój indeks: {{ student.student_index }}</p>
     </div>
 
+    {% if message %}
+    <div class="alert alert-danger">{{ message }}</div>
+    {% endif %}
+
     <div class="card p-3 mb-4">
         <h5>Twoje zajęcia:</h5>
         <ul class="list-group">
