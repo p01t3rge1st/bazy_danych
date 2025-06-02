@@ -22,6 +22,14 @@ class Building(models.Model):
 
 
 class Class(models.Model):
+    DAY_CHOICES = [
+        ('pon', 'Poniedziałek'),
+        ('wt', 'Wtorek'),
+        ('sr', 'Środa'),
+        ('czw', 'Czwartek'),
+        ('pt', 'Piątek'),
+    ]
+    
     class_id = models.AutoField(db_column='Class_ID', primary_key=True, blank=True, null=False)  # Field name made lowercase.
     lecturer = models.ForeignKey('Lecturer', models.DO_NOTHING, db_column='Lecturer_ID')  # Field name made lowercase.
     start_time = models.TextField(db_column='Start_Time')  # Field name made lowercase.
@@ -32,9 +40,11 @@ class Class(models.Model):
     subject = models.ForeignKey('Subject', models.DO_NOTHING, db_column='Subject_ID')  # Field name made lowercase.
     waiting_list_count = models.IntegerField(db_column='Waiting_List_Count', blank=True, null=True)  # Field name made lowercase.
     room = models.ForeignKey('Room', models.DO_NOTHING, db_column='Room_ID')  # Field name made lowercase.
-
+    day_of_week = models.CharField(db_column='Day_Of_Week', max_length=3, choices=DAY_CHOICES,
+        default='pon'
+    )
     def __str__(self):
-        return f"[{self.class_id}] {self.subject}: {self.start_time}-{self.end_time}"
+        return f"[{self.class_id}] {self.subject}: {self.day_of_week} {self.start_time}-{self.end_time}"
 
     class Meta:
         managed = False
