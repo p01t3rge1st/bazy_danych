@@ -30,12 +30,24 @@ def get_day_short(weekday):
 @login_required
 def student_panel(request):
     remove_old_reservations()
+
     try:
         student = Student.objects.get(student_index=request.user.username)
     except Student.DoesNotExist:
         return redirect('/')
 
-    message = None  # Komunikat o kolizji
+    message = None
+
+    waiting_reservations = Reservation.objects.filter(
+        student_index=student,
+        status__status_name="Oczekujący"
+    )
+
+    #przenoszenie z list oczekujących do zapisanych
+    for res in waiting_reservations:
+        if res.class_field.max_capacity > res.class_field.enrolled_count:
+            message = f"Zostałeś przeniesiony z listy oczekujących do zapisanych na zajęcia {res.class_field}."
+            move_from_waiting_list(res.class_field)
 
     # Obsługa zapisów i wypisów
     if request.method == 'POST':
@@ -44,13 +56,19 @@ def student_panel(request):
         if class_id and action:
             class_obj = Class.objects.get(class_id=class_id)
             if action == 'enroll':
-                # Sprawdzenie kolizji terminów
-                # Pobierz wszystkie zajęcia studenta w tym samym dniu
+                # Sprawdzenie kolizji godzin i dnia
                 student_classes = Class.objects.filter(
                     reservation__student_index=student,
                     day_of_week=class_obj.day_of_week
                 )
-                # Sprawdź, czy godziny się nakładają
+
+                already_reserved = Reservation.objects.filter(
+                    student_index=student,
+                    class_field=class_obj
+                ).exists()
+                if already_reserved:
+                    message = "Jesteś już zapisany lub oczekujesz na te zajęcia."
+
                 def time_overlap(start1, end1, start2, end2):
                     return start1 < end2 and end1 > start2
 
@@ -66,30 +84,61 @@ def student_panel(request):
                 if overlap:
                     message = "Masz już zajęcia w tym dniu w kolidujących godzinach!"
                 else:
-                    status = ReservationStatus.objects.get(status_name="Zapisany")
-                    Reservation.objects.create(
-                        student_index=student,
+                    enrolled_count = Reservation.objects.filter(
                         class_field=class_obj,
-                        reservation_date="dzisiaj",  # lub datetime.now()
-                        status=status,
-                        note=f"Rezerwacja {student.student_index}-{class_obj.class_id}"
-                    )
-            elif action == 'unenroll':
-                Reservation.objects.filter(
-                    student_index=student,
-                    class_field=class_obj
-                ).delete()
+                        status__status_name="Zapisany"
+                    ).count()
+                    if enrolled_count < class_obj.max_capacity:
+                        status = ReservationStatus.objects.get(status_name="Zapisany")
+                        Reservation.objects.create(
+                            student_index=student,
+                            class_field=class_obj,
+                            reservation_date=datetime.date.today(),
+                            status=status,
+                            note=f"Rezerwacja {student.student_index}-{class_obj.class_id}"
+                        )
+                        message = "Zostałeś zapisany na zajęcia."
+                    else:
+                        status = ReservationStatus.objects.get(status_name="Oczekujący")
+                        Reservation.objects.create(
+                            student_index=student,
+                            class_field=class_obj,
+                            reservation_date=datetime.date.today(),
+                            status=status,
+                            note=f"Oczekujący {student.student_index}-{class_obj.class_id}"
+                        )
+                        message = "Lista jest pełna. Zostałeś dodany do listy oczekujących."
 
+            elif action == 'unenroll':
+                        Reservation.objects.filter(
+                            student_index=student,
+                            class_field=class_obj
+                        ).delete()
+                        move_from_waiting_list(class_obj)
+                        message = "Zostałeś wypisany z zajęć."
     # Zajęcia, na które student jest zapisany
     reserved_classes = Class.objects.filter(reservation__student_index=student)
     # Wszystkie zajęcia, na które NIE jest zapisany
     available_classes = Class.objects.exclude(reservation__student_index=student)
+    
+    user_reservations_qs = Reservation.objects.filter(student_index=student)
+
+    # Słownik: class_id -> rezerwacja, gdzie Zapisany > Oczekujący
+    user_reservations = {}
+    for r in user_reservations_qs.order_by('-status__status_name'):
+        user_reservations[r.class_field_id] = r
+
+    # Lista unikalnych klas
+    reserved_classes = Class.objects.filter(class_id__in=user_reservations.keys())
+
+    
 
     return render(request, 'student_panel.html', {
         'student': student,
         'reserved_classes': reserved_classes,
         'available_classes': available_classes,
         'message': message,  # Przekaż komunikat do szablonu
+        'user_reservations': user_reservations,
     })
 
 def custom_login(request):
@@ -265,3 +314,41 @@ def import_classes_from_pdf():
             }
         )
     _import_done = True
+
+def move_from_waiting_list(class_obj):
+    waiting = Reservation.objects.filter(
+        class_field=class_obj,
+        status__status_name="Oczekujący"
+    ).order_by('reservation_date')
+    if waiting.exists():
+        first = waiting.first()
+        student = first.student_index
+
+        # Sprawdź kolizję godzin i dnia
+        student_classes = Class.objects.filter(
+            reservation__student_index=student,
+            day_of_week=class_obj.day_of_week,
+            reservation__status__status_name="Zapisany"
+        ).exclude(pk=class_obj.pk)
+
+        def time_overlap(start1, end1, start2, end2):
+            return start1 < end2 and end1 > start2
+
+        overlap = False
+        for c in student_classes:
+            if time_overlap(
+                class_obj.start_time, class_obj.end_time,
+                c.start_time, c.end_time
+            ) and c.is_cancelled != 1:
+                overlap = True
+                break
+
+        if not overlap:
+            status = ReservationStatus.objects.get(status_name="Zapisany")
+            # Usuń inne rezerwacje tego studenta do tych zajęć (na wszelki wypadek)
+            Reservation.objects.filter(
+                student_index=first.student_index,
+                class_field=class_obj
+            ).exclude(pk=first.pk).delete()
+            first.status = status
+            first.save()

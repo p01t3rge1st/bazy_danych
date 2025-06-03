@@ -1,5 +1,6 @@
-{% extends "base.html" %}
 
+{% extends "base.html" %}
+{% load form_tags %}
 {% block title %}Panel studenta{% endblock %}
 
 {% block content %}
@@ -20,25 +21,30 @@
         <h5>Twoje zajęcia:</h5>
         <ul class="list-group">
             {% for c in reserved_classes %}
-<li class="list-group-item d-flex justify-content-between align-items-center">
-    <span>
-        {{ c }}
-        {% if c.is_cancelled %}
-            <span class="badge bg-danger ms-2">Anulowane</span>
-        {% endif %}
-    </span>
-    <div>
-        <a href="{% url 'class_detail' c.class_id %}" class="btn btn-info btn-sm me-2">Szczegóły</a>
-        <form method="post" class="d-inline">
-            {% csrf_token %}
-            <input type="hidden" name="class_id" value="{{ c.class_id }}">
-            <input type="hidden" name="action" value="unenroll">
-            <button type="submit" class="btn btn-danger btn-sm">❌ Wypisz się</button>
-        </form>
-    </div>
-</li>
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span>
+            {{ c }}
+            {% if c.is_cancelled %}
+                <span class="badge bg-danger ms-2">Anulowane</span>
+            {% endif %}
+            {% with res=user_reservations|get_item:c.class_id %}
+                {% if res and res.status.status_name == "Oczekujący" %}
+                    <span class="badge bg-warning ms-2">Oczekujący</span>
+                {% endif %}
+            {% endwith %}
+        </span>
+        <div>
+            <a href="{% url 'class_detail' c.class_id %}" class="btn btn-info btn-sm me-2">Szczegóły</a>
+            <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="class_id" value="{{ c.class_id }}">
+                <input type="hidden" name="action" value="unenroll">
+                <button type="submit" class="btn btn-danger btn-sm">❌ Wypisz się</button>
+            </form>
+        </div>
+    </li>
 {% empty %}
-<li class="list-group-item">Brak zapisanych zajęć.</li>
+    <li class="list-group-item">Brak zapisanych zajęć.</li>
 {% endfor %}
         </ul>
     </div>
